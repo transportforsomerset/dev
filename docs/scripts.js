@@ -123,17 +123,21 @@ function createPopup(vehicle) {
     ? `<img src="media/${operator.logo}" alt="${operator.short_name}" class="popup-operator-logo">`
     : "";
 
-  return `
+return `
+  ${staleMessage}
+  <div class="popup-header">
+    <div>
+      <div class="popup-route">Route ${vehicle.route}</div>
+      <div class="popup-operator">${operator?.short_name ?? vehicle.operator}</div>
+    </div>
     ${operatorLogo}
-    ${staleMessage}
-    <div class="popup-route">Route ${vehicle.route}</div>
-    <div class="popup-destination">${vehicle.origin} → ${vehicle.destination}</div>
-    <div class="popup-details">
-      <strong>Operator: </strong>${operator?.short_name ?? vehicle.operator}<br>
-      <strong>Vehicle: </strong>${vehicle.vehicle_id}<br>
-      <strong>Speed: </strong>${mph.toFixed(1)} mph<br>
-      <strong>Recorded: </strong>${formatTime(vehicle.recorded_at)}
-    </div>`;
+  </div>
+  <div class="popup-destination">${vehicle.origin} → ${vehicle.destination}</div>
+  <div class="popup-details">
+    <strong>Vehicle: </strong>${vehicle.vehicle_id}<br>
+    <strong>Speed: </strong>${mph.toFixed(1)} mph<br>
+    <strong>Recorded: </strong>${formatTime(vehicle.recorded_at)}
+  </div>`;
 }
 
 /* Markers on the map. */
