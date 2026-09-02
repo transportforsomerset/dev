@@ -325,17 +325,22 @@
       margin-bottom: 9px;
     }
 
+.popup-header {
+  display: flex;
+  align-items: center;
+}
+
 .popup-operator-logo {
-  float: right;
   width: 42px;
   height: 42px;
   object-fit: contain;
-  margin: 0 0 6px 10px;
+  margin-right: 10px;
+  flex-shrink: 0;
 }
+
 .popup-operator {
   font-size: 16px;
   line-height: 1.1;
-  margin-top: 1px;
 }
 
     .popup-details {
