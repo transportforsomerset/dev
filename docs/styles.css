@@ -325,14 +325,13 @@
       margin-bottom: 9px;
     }
 
-    .popup-operator-logo {
-      height: 40px;
-      width: auto;
-      max-width: 180px;
-      object-fit: contain;
-      display: block;
-      margin-bottom: 6px;
-    }
+.popup-operator-logo {
+  float: right;
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  margin: 0 0 6px 10px;
+}
 
     .popup-details {
       font-size: 0.88rem;
