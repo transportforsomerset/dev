@@ -208,23 +208,24 @@ function buildRouteButtons() {
 
   async function loadData() {
     try {
-//    const cacheBust = "?" + Date.now();
-      const cacheBust = "";
+      const cacheBust = ""; // Can be removed??
       const dataURL = "https://busopendata.transportforsomerset.co.uk/";
-      const [busResponse,statusResponse,servicesResponse] = await Promise.all([
-        fetch(`${dataURL}buses.json${cacheBust}`,    {cache: "no-store"}),
-        fetch(`${dataURL}status.json${cacheBust}`,   {cache: "no-store"}),
-        fetch(`${dataURL}services.json${cacheBust}`, {cache: "no-store"})
+      const [busResponse,statusResponse,servicesResponse,operatorsResponse] = await Promise.all([
+        fetch(`${dataURL}buses.json${cacheBust}`,     {cache: "no-store"}),
+        fetch(`${dataURL}status.json${cacheBust}`,    {cache: "no-store"}),
+        fetch(`${dataURL}services.json${cacheBust}`,  {cache: "no-store"}),
+        fetch(`${dataURL}operators.json${cacheBust}`, {cache: "no-store"})
       ]);
 
       // Did something go wrong with the data fetching??
       if (!busResponse.ok)      { throw new Error(`Bus data HTTP ${busResponse.status}`); }
       if (!statusResponse.ok)   { throw new Error(`Status HTTP ${statusResponse.status}`); }
       if (!servicesResponse.ok) { throw new Error(`Services HTTP ${servicesResponse.status}`); }
+      if (!operatorResponse.ok) { throw new Error(`Operators HTTP ${operatorsResponse.status}`); }
 
-      const data    = await busResponse.json();
-      const status  = await statusResponse.json();
-      
+      const data      = await busResponse.json();
+      const operators = await operatorsResponse.json();
+      const status    = await statusResponse.json();
       serviceGroups = await servicesResponse.json();
 
       allVehicles = data.vehicles;
