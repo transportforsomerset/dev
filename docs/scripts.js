@@ -124,11 +124,11 @@ function createPopup(vehicle) {
     : "";
 
   return `
+    ${operatorLogo}
     ${staleMessage}
     <div class="popup-route">Route ${vehicle.route}</div>
     <div class="popup-destination">${vehicle.origin} → ${vehicle.destination}</div>
     <div class="popup-details">
-      ${operatorLogo}
       <strong>Operator: </strong>${operator?.short_name ?? vehicle.operator}<br>
       <strong>Vehicle: </strong>${vehicle.vehicle_id}<br>
       <strong>Speed: </strong>${mph.toFixed(1)} mph<br>
