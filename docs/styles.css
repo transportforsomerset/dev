@@ -324,6 +324,7 @@
     .popup-destination {
       border-top: #ddd 1px dashed; 
       margin: 9px 0;
+      padding: 4px 0;
     }
 
 .popup-header {
