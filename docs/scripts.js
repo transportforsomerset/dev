@@ -126,11 +126,11 @@ function createPopup(vehicle) {
 return `
   ${staleMessage}
   <div class="popup-header">
+    ${operatorLogo}
     <div>
       <div class="popup-route">Route ${vehicle.route}</div>
       <div class="popup-operator">${operator?.short_name ?? vehicle.operator}</div>
     </div>
-    ${operatorLogo}
   </div>
   <div class="popup-destination">${vehicle.origin} → ${vehicle.destination}</div>
   <div class="popup-details">
