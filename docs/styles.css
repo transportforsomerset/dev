@@ -325,6 +325,15 @@
       margin-bottom: 9px;
     }
 
+    .popup-operator-logo {
+      height: 40px;
+      width: auto;
+      max-width: 180px;
+      object-fit: contain;
+      display: block;
+      margin-bottom: 6px;
+    }
+
     .popup-details {
       font-size: 0.88rem;
       line-height: 1.55;
