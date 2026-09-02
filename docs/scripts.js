@@ -27,6 +27,7 @@
   const markers = new Map();
 
   let allVehicles = [];
+  let operators = {};
   let serviceGroups = [];
   let selectedRoute = "all";
 
@@ -117,19 +118,26 @@ function createPopup(vehicle) {
     staleMessage = `<div class="popup-stale">This bus hasn't provided updated information for over 5 minutes.</div>`;
   }
 
+  const operator = operators[vehicle.operator_code];
+  const operatorLogo = operator?.logo
+    ? `<img src="media/${operator.logo}" alt="${operator.short_name}" class="popup-operator-logo">`
+    : "";
+
   return `
     ${staleMessage}
     <div class="popup-route">Route ${vehicle.route}</div>
     <div class="popup-destination">${vehicle.origin} → ${vehicle.destination}</div>
     <div class="popup-details">
-      <strong>Operator: </strong>${vehicle.operator}<br>
+      ${operatorLogo}
+      <strong>Operator: </strong>${operator?.short_name ?? vehicle.operator}<br>
       <strong>Vehicle: </strong>${vehicle.vehicle_id}<br>
       <strong>Speed: </strong>${mph.toFixed(1)} mph<br>
       <strong>Recorded: </strong>${formatTime(vehicle.recorded_at)}
     </div>`;
 }
 
-  function updateMarkers() {
+/* Markers on the map. */
+function updateMarkers() {
     const selectedGroup = serviceGroups.find(group => group.ref === selectedRoute);
     const visibleVehicles = selectedRoute === "all" ? allVehicles : allVehicles.filter(vehicle =>selectedGroup?.services.includes(vehicle.route));
     const activeIds = new Set(visibleVehicles.map(vehicle => vehicle.vehicle_id));
@@ -223,9 +231,9 @@ function buildRouteButtons() {
       if (!servicesResponse.ok) { throw new Error(`Services HTTP ${servicesResponse.status}`); }
       if (!operatorsResponse.ok) { throw new Error(`Operators HTTP ${operatorsResponse.status}`); }
 
-      const data      = await busResponse.json();
-      const operators = await operatorsResponse.json();
-      const status    = await statusResponse.json();
+      const data    = await busResponse.json();
+      const status  = await statusResponse.json();
+      operators     = await operatorsResponse.json();
       serviceGroups = await servicesResponse.json();
 
       allVehicles = data.vehicles;
