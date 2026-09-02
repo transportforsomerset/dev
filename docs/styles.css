@@ -322,7 +322,8 @@
     }
 
     .popup-destination {
-      margin-bottom: 9px;
+      border-top: #ddd 1px dashed; 
+      margin: 9px 0;
     }
 
 .popup-header {
