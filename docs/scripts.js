@@ -221,7 +221,7 @@ function buildRouteButtons() {
       if (!busResponse.ok)      { throw new Error(`Bus data HTTP ${busResponse.status}`); }
       if (!statusResponse.ok)   { throw new Error(`Status HTTP ${statusResponse.status}`); }
       if (!servicesResponse.ok) { throw new Error(`Services HTTP ${servicesResponse.status}`); }
-      if (!operatorResponse.ok) { throw new Error(`Operators HTTP ${operatorsResponse.status}`); }
+      if (!operatorsResponse.ok) { throw new Error(`Operators HTTP ${operatorsResponse.status}`); }
 
       const data      = await busResponse.json();
       const operators = await operatorsResponse.json();
