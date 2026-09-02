@@ -132,7 +132,7 @@ return `
       <div class="popup-operator">${operator?.short_name ?? vehicle.operator}</div>
     </div>
   </div>
-  <div class="popup-destination">${vehicle.origin} → ${vehicle.destination}</div>
+  <div class="popup-destination">${vehicle.origin}<br>↓<br> ${vehicle.destination}</div>
   <div class="popup-details">
     <strong>Vehicle: </strong>${vehicle.vehicle_id}<br>
     <strong>Speed: </strong>${mph.toFixed(1)} mph<br>
