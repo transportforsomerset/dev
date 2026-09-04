@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <title>Live Bus Tracker via Transport for Somerset</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="/styles.css">
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+    <script src="scripts.js" defer></script>
+</head>
+
+<body>
+
+<header></header>
+
+<main>
+  <section id="live-buses">
+    <div class="status" id="status">Loading bus data...</div>
+    <div class="map-card"><div id="map"></div></div>
+    <div class="route-bar">
+      <span class="route-label">Routes:</span>
+      <button class="route-button selected" data-route="all">All</button>
+    </div>
+  </section>
+</main>
+
+<footer>
+
+  <div class="footer-inner">
+    <p><strong>Transport for Somerset</strong></p>
+    <p>
+      Independent local transport information for Somerset.<br>
+      This web site is not affiliated with Somerset Council, or any local or national bus operators.
+    </p>
+    <p>Map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a></p>
+    <p>© Transport for Somerset 2026</p>
+  </div>
+
+</footer>
+
+</body>
+</html>
