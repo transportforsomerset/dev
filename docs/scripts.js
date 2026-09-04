@@ -33,6 +33,7 @@
 
   /* Colours for each route, not including route variations. */
   const routeColours = {
+    "1":   "route-1",
     "21":  "route-21",
     "22":  "route-22",
     "25":  "route-25",
@@ -42,6 +43,7 @@
 
   /* Route variations to use the same main route colour. */
   const routeColourGroups = {
+    "1":  ["1","1E"],
     "21": ["21A"],
     "22": ["22A", "22C", "X22"],
     "25": ["25A"],
