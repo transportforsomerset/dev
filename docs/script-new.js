@@ -1,5 +1,34 @@
 const map = L.map("map");
 
+/* Load Leaflet.markercluster before creating the cluster group. */
+function loadMarkerCluster() {
+  return new Promise((resolve, reject) => {
+    if (window.L && L.MarkerClusterGroup) {
+      resolve();
+      return;
+    }
+
+    const css = document.createElement("link");
+    css.rel = "stylesheet";
+    css.href =
+      "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css";
+    document.head.appendChild(css);
+
+    const cssDefault = document.createElement("link");
+    cssDefault.rel = "stylesheet";
+    cssDefault.href =
+      "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css";
+    document.head.appendChild(cssDefault);
+
+    const script = document.createElement("script");
+    script.src =
+      "https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js";
+    script.onload = resolve;
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+}
+
 const fullscreenControl = L.control({ position: "topright" });
 
 fullscreenControl.onAdd = function () {
@@ -39,6 +68,7 @@ L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
 map.setView([51.0149, -3.1024], 11);
 
 const markers = new Map();
+let markerCluster = null;
 let allVehicles = [];
 
 /* Simple marker for the national BODS rendering experiment. */
@@ -78,27 +108,47 @@ function updateMarkers() {
         icon: createBusIcon(vehicle),
       });
 
-      marker.addTo(map);
       markers.set(vehicle.vehicle_id, marker);
+      markerCluster.addLayer(marker);
     } else {
       marker.setLatLng(position);
       marker.setIcon(createBusIcon(vehicle));
 
-      if (!map.hasLayer(marker)) {
-        marker.addTo(map);
+      if (!markerCluster.hasLayer(marker)) {
+        markerCluster.addLayer(marker);
       }
     }
   }
 
   for (const [id, marker] of markers) {
     if (!activeIds.has(id)) {
-      map.removeLayer(marker);
+      markerCluster.removeLayer(marker);
+      markers.delete(id);
     }
   }
 }
 
 async function loadData() {
   try {
+    await loadMarkerCluster();
+
+    markerCluster = L.markerClusterGroup({
+      maxClusterRadius: 50,
+      showCoverageOnHover: false,
+      spiderfyOnMaxZoom: true,
+      disableClusteringAtZoom: 16,
+
+      /*
+       * Add markers in batches so the browser doesn't try
+       * to process all 27,000+ at once.
+       */
+      chunkedLoading: true,
+      chunkInterval: 50,
+      chunkDelay: 10,
+    });
+
+    map.addLayer(markerCluster);
+
     const dataURL = "https://busopendata.transportforsomerset.co.uk/";
 
     const response = await fetch(`${dataURL}all-new.json`, {
