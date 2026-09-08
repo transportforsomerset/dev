@@ -234,7 +234,7 @@ function buildRouteButtons() {
 
       // Did something go wrong with the data fetching??
       if (!busResponse.ok)      { throw new Error(`Bus data HTTP ${busResponse.status}`); }
-      if (!allResponse.ok)      { throw new Error(`Bus data HTTP ${allResponse.status}`); }
+      if (!allResponse.ok)      { throw new Error(`All data HTTP ${allResponse.status}`); }
       if (!statusResponse.ok)   { throw new Error(`Status HTTP ${statusResponse.status}`); }
       if (!servicesResponse.ok) { throw new Error(`Services HTTP ${servicesResponse.status}`); }
       if (!operatorsResponse.ok) { throw new Error(`Operators HTTP ${operatorsResponse.status}`); }
