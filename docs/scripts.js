@@ -240,6 +240,7 @@ function buildRouteButtons() {
       if (!operatorsResponse.ok) { throw new Error(`Operators HTTP ${operatorsResponse.status}`); }
 
       const data    = await busResponse.json();
+      const all     = await allResponse.json();
       const status  = await statusResponse.json();
       operators     = await operatorsResponse.json();
       serviceGroups = await servicesResponse.json();
