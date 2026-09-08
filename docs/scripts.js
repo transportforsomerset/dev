@@ -226,6 +226,7 @@ function buildRouteButtons() {
       const dataURL = "https://busopendata.transportforsomerset.co.uk/";
       const [busResponse,statusResponse,servicesResponse,operatorsResponse] = await Promise.all([
         fetch(`${dataURL}buses.json${cacheBust}`,     {cache: "no-store"}),
+        fetch(`${dataURL}all.json${cacheBust}`,       {cache: "no-store"}),
         fetch(`${dataURL}status.json${cacheBust}`,    {cache: "no-store"}),
         fetch(`${dataURL}services.json${cacheBust}`,  {cache: "no-store"}),
         fetch(`${dataURL}operators.json${cacheBust}`, {cache: "no-store"})
