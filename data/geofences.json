@@ -1,9 +1,0 @@
-[
-  {
-    "name": "Berry's depot",
-    "latitude": 51.02704,
-    "longitude": -3.13446,
-    "radius_metres": 150,
-    "services": ["SF1","SF2","SF3"]
-  }
-]
