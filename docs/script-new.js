@@ -1,34 +1,5 @@
 const map = L.map("map");
 
-/* Load Leaflet.markercluster before creating the cluster group. */
-function loadMarkerCluster() {
-  return new Promise((resolve, reject) => {
-    if (window.L && L.MarkerClusterGroup) {
-      resolve();
-      return;
-    }
-
-    const css = document.createElement("link");
-    css.rel = "stylesheet";
-    css.href =
-      "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css";
-    document.head.appendChild(css);
-
-    const cssDefault = document.createElement("link");
-    cssDefault.rel = "stylesheet";
-    cssDefault.href =
-      "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css";
-    document.head.appendChild(cssDefault);
-
-    const script = document.createElement("script");
-    script.src =
-      "https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js";
-    script.onload = resolve;
-    script.onerror = reject;
-    document.head.appendChild(script);
-  });
-}
-
 const fullscreenControl = L.control({ position: "topright" });
 
 fullscreenControl.onAdd = function () {
@@ -165,8 +136,6 @@ function updateMarkers() {
 
 async function loadData() {
   try {
-    await loadMarkerCluster();
-
     markerCluster = L.markerClusterGroup({
       maxClusterRadius: 50,
       showCoverageOnHover: false,
