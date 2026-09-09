@@ -81,17 +81,52 @@ function createBusIcon(vehicle) {
   });
 }
 
-/* Decode the compact all-new.json format. */
+/* Decode compact all-v4.json format. */
 function decodeCompactData(data) {
-  return data.vehicles.map((values) => {
-    const vehicle = {};
+  const vehicles = [];
 
-    data.fields.forEach((field, index) => {
-      vehicle[field] = values[index];
-    });
+  for (const [operatorCode, operatorVehicles] of Object.entries(
+    data.operators
+  )) {
+    const operatorName =
+      data.operator_names[operatorCode] ?? operatorCode;
 
-    return vehicle;
-  });
+    for (const values of operatorVehicles) {
+      const date = data.dates[values[9]];
+      const direction = data.directions[values[2]];
+      const destination = data.destinations[values[4]];
+
+      if (date === undefined) {
+        throw new Error(`Invalid date index ${values[9]}`);
+      }
+
+      if (direction === undefined) {
+        throw new Error(`Invalid direction index ${values[2]}`);
+      }
+
+      if (destination === undefined) {
+        throw new Error(`Invalid destination index ${values[4]}`);
+      }
+
+      vehicles.push({
+        vehicle_id: values[0],
+        operator: operatorName,
+        operator_code: operatorCode,
+        route: values[1],
+        direction,
+        origin: values[3],
+        destination,
+        latitude: values[5],
+        longitude: values[6],
+        bearing: values[7],
+        occupancy: values[8],
+        recorded_at: `${date}T${values[10]}+00:00`,
+        journey_id: values[11],
+      });
+    }
+  }
+
+  return vehicles;
 }
 
 function updateMarkers() {
@@ -151,7 +186,7 @@ async function loadData() {
 
     const dataURL = "https://busopendata.transportforsomerset.co.uk/";
 
-    const response = await fetch(`${dataURL}all-new.json`, {
+    const response = await fetch(`${dataURL}all-v4.json`, {
       cache: "no-store",
     });
 
