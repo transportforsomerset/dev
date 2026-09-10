@@ -309,62 +309,63 @@
       );
     }
 
-    _createCluster(markers) {
-      const count = markers.length;
+_createCluster(markers) {
+  const count = markers.length;
 
-      let sizeClass = "";
+  let sizeClass = "";
 
-      if (count >= 100) {
-        sizeClass = "large";
-      } else if (count < 10) {
-        sizeClass = "small";
-      }
+  if (count >= 100) {
+    sizeClass = "large";
+  } else if (count < 10) {
+    sizeClass = "small";
+  }
 
-      const icon = new L.DivIcon({
-        className: "",
-        html:
-          `<div class="all-cluster ${sizeClass}">` +
-          `${count}` +
-          `</div>`,
-        iconSize: [50, 50],
-        iconAnchor: [25, 25],
-      });
+  const icon = new L.DivIcon({
+    className: "",
+    html:
+      `<div class="all-cluster ${sizeClass}" ` +
+      `style="border-style: dashed; border-radius: 8px;">` +
+      `${count}` +
+      `</div>`,
+    iconSize: [50, 50],
+    iconAnchor: [25, 25],
+  });
 
-      const cluster = new L.Marker(
-        this._center(markers),
-        {
-          icon,
-        }
+  const cluster = new L.Marker(
+    this._center(markers),
+    {
+      icon,
+    }
+  );
+
+  cluster.on("click", () => {
+    if (!this._map) {
+      return;
+    }
+
+    const bounds =
+      new L.LatLngBounds(
+        markers.map((marker) =>
+          marker.getLatLng()
+        )
       );
 
-      cluster.on("click", () => {
-        if (!this._map) {
-          return;
-        }
-
-        const bounds =
-          new L.LatLngBounds(
-            markers.map((marker) =>
-              marker.getLatLng()
-            )
-          );
-
-        if (!bounds.isValid()) {
-          return;
-        }
-
-        this._map.fitBounds(
-          bounds,
-          {
-            padding: [30, 30],
-            maxZoom:
-              this._map.getZoom() + 2,
-          }
-        );
-      });
-
-      return cluster;
+    if (!bounds.isValid()) {
+      return;
     }
+
+    this._map.fitBounds(
+      bounds,
+      {
+        padding: [30, 30],
+        maxZoom:
+          this._map.getZoom() + 2,
+      }
+    );
+  });
+
+  return cluster;
+}
 
     _center(markers) {
       let lat = 0;
