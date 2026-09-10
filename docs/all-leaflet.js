@@ -1,3 +1,5 @@
+const { MarkerClusterGroup } = await import("./all-leaflet-cluster.js");
+
 const map = new L.Map("map");
 const useClusterer = true; // Use the experimental clusterer - true (on) or false (off).
                            // WARNING: turning this off will likely result in a browser
