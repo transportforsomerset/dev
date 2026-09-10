@@ -142,7 +142,7 @@ function updateMarkers() {
     nextMarkers.push(marker);
   }
 
-  if (useCluster) {
+  if (useClusterer) {
     markerCluster.clearLayers();
     markerCluster.addLayers(nextMarkers);
   } else {
@@ -155,7 +155,7 @@ function updateMarkers() {
 
   for (const [id, marker] of markers) {
     if (!activeIds.has(id)) {
-      if (useCluster) {
+      if (useClusterer) {
         markerCluster.removeLayer(marker);
       } else {
         map.removeLayer(marker);
