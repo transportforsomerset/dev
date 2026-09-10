@@ -228,17 +228,21 @@
        * At or above the configured zoom level,
        * show individual markers.
        */
-      if (
-        zoom >=
-        this.options.disableClusteringAtZoom
-      ) {
-        for (const marker of markers) {
-          this._map.addLayer(marker);
-          this._rendered.add(marker);
-        }
+if (
+  zoom >=
+  this.options.disableClusteringAtZoom
+) {
+  const bounds = this._map.getBounds().pad(0.25);
 
-        return;
-      }
+  for (const marker of markers) {
+    if (bounds.contains(marker.getLatLng())) {
+      this._map.addLayer(marker);
+      this._rendered.add(marker);
+    }
+  }
+
+  return;
+}
 
       /*
        * At lower zoom levels, group markers
