@@ -320,16 +320,16 @@ _createCluster(markers) {
     sizeClass = "small";
   }
 
-  const icon = new L.DivIcon({
-    className: "",
-    html:
-      `<div class="all-cluster ${sizeClass}" ` +
-      `style="border-style: dashed; border-radius: 8px;">` +
-      `${count}` +
-      `</div>`,
-    iconSize: [50, 50],
-    iconAnchor: [25, 25],
-  });
+const icon = new L.DivIcon({
+  className: "",
+  html:
+    `<div class="all-cluster ${sizeClass}" ` +
+    `style="border-style: dashed; border-radius: 50%;">` +
+    `${count}` +
+    `</div>`,
+  iconSize: [50, 50],
+  iconAnchor: [25, 25],
+});
 
   const cluster = new L.Marker(
     this._center(markers),
