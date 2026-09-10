@@ -173,7 +173,7 @@ function updateMarkers() {
 async function loadData() {
   try {
     if (useClusterer) { // turn on / off with the const at the top of the page.
-      markerCluster = new L.MarkerClusterGroup({
+      markerCluster = new MarkerClusterGroup({
         maxClusterRadius: 50,
         disableClusteringAtZoom: 16,
         chunkedLoading: true,
