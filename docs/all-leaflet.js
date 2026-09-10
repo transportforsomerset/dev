@@ -1,4 +1,5 @@
 const map = new L.Map("map");
+const useClusterer = false; // Use the experimental clusterer - true or false.
 
 const fullscreenControl = new L.Control({ position: "topright" });
 
@@ -141,11 +142,25 @@ function updateMarkers() {
     nextMarkers.push(marker);
   }
 
-  markerCluster.clearLayers();
-  markerCluster.addLayers(nextMarkers);
+  if (useCluster) {
+    markerCluster.clearLayers();
+    markerCluster.addLayers(nextMarkers);
+  } else {
+    for (const marker of nextMarkers) {
+      if (!map.hasLayer(marker)) {
+        marker.addTo(map);
+      }
+    }
+  }
 
-  for (const [id] of markers) {
+  for (const [id, marker] of markers) {
     if (!activeIds.has(id)) {
+      if (useCluster) {
+        markerCluster.removeLayer(marker);
+      } else {
+        map.removeLayer(marker);
+      }
+
       markers.delete(id);
     }
   }
@@ -153,15 +168,16 @@ function updateMarkers() {
 
 async function loadData() {
   try {
-    markerCluster = new L.MarkerClusterGroup({
-      maxClusterRadius: 50,
-      disableClusteringAtZoom: 16,
-      chunkedLoading: true,
-      chunkInterval: 50,
-      chunkDelay: 10,
-    });
-
-    markerCluster.addTo(map);
+    if (useClusterer) { // turn on / off with the const at the top of the page.
+      markerCluster = new L.MarkerClusterGroup({
+        maxClusterRadius: 50,
+        disableClusteringAtZoom: 16,
+        chunkedLoading: true,
+        chunkInterval: 50,
+        chunkDelay: 10,
+      });
+      markerCluster.addTo(map);
+    }
 
     const response = await fetch(
       "https://busopendata.transportforsomerset.co.uk/all-v4.json",
