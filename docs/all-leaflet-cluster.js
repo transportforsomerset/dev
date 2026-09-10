@@ -5,8 +5,22 @@
  * Leaflet 2.0 test map.
  *
  * This is NOT a drop-in replacement for the full
- * Leaflet.markercluster library. It implements only
- * the functionality currently needed by all-leaflet.js.
+ * Leaflet.markercluster library.
+ *
+ * It currently provides:
+ *   - marker storage
+ *   - clustering by screen-space grid
+ *   - click-to-zoom clusters
+ *   - configurable cluster radius
+ *   - configurable zoom level at which clustering stops
+ *   - chunked marker loading
+ *
+ * It deliberately does not attempt to reproduce:
+ *   - spiderfy
+ *   - animated clustering
+ *   - convex hulls
+ *   - distance-based neighbour clustering
+ *   - all MarkerClusterGroup APIs
  */
 
 (() => {
@@ -23,11 +37,21 @@
         ...options,
       };
 
-      this._markers = new Map();
+      /*
+       * Use a Set rather than Leaflet's private
+       * _leaflet_id property.
+       *
+       * This keeps the clusterer independent of
+       * Leaflet's internal marker implementation.
+       */
+      this._markers = new Set();
+
       this._rendered = new Set();
+
       this._map = null;
       this._refreshScheduled = false;
       this._loading = false;
+      this._boundRefresh = null;
     }
 
     onAdd(map) {
@@ -48,24 +72,27 @@
     }
 
     onRemove(map) {
-      map.off(
-        "zoomend moveend resize",
-        this._boundRefresh
-      );
+      if (this._boundRefresh) {
+        map.off(
+          "zoomend moveend resize",
+          this._boundRefresh
+        );
+      }
 
       this._clearRendered();
+
       this._map = null;
+      this._boundRefresh = null;
 
       super.onRemove(map);
     }
 
     addLayer(marker) {
-      if (!marker) return this;
+      if (!marker) {
+        return this;
+      }
 
-      this._markers.set(
-        marker._leaflet_id,
-        marker
-      );
+      this._markers.add(marker);
 
       if (this._map) {
         this._scheduleRefresh();
@@ -80,10 +107,7 @@
       if (!this.options.chunkedLoading) {
         for (const marker of list) {
           if (marker) {
-            this._markers.set(
-              marker._leaflet_id,
-              marker
-            );
+            this._markers.add(marker);
           }
         }
 
@@ -107,10 +131,7 @@
           const marker = list[index++];
 
           if (marker) {
-            this._markers.set(
-              marker._leaflet_id,
-              marker
-            );
+            this._markers.add(marker);
           }
         }
 
@@ -132,9 +153,7 @@
 
     removeLayer(marker) {
       if (marker) {
-        this._markers.delete(
-          marker._leaflet_id
-        );
+        this._markers.delete(marker);
       }
 
       if (this._map) {
@@ -155,18 +174,11 @@
     }
 
     hasLayer(layer) {
-      return (
-        !!layer &&
-        this._markers.has(
-          layer._leaflet_id
-        )
-      );
+      return this._markers.has(layer);
     }
 
     getLayers() {
-      return Array.from(
-        this._markers.values()
-      );
+      return Array.from(this._markers);
     }
 
     _scheduleRefresh() {
@@ -208,13 +220,14 @@
       this._clearRendered();
 
       const markers = Array.from(
-        this._markers.values()
+        this._markers
       );
 
       const zoom = this._map.getZoom();
 
       /*
-       * At high zoom levels, show individual buses.
+       * At or above the configured zoom level,
+       * show individual markers.
        */
       if (
         zoom >=
@@ -229,17 +242,21 @@
       }
 
       /*
-       * Otherwise divide the projected map into
-       * square buckets and cluster markers that
-       * fall into the same bucket.
+       * At lower zoom levels, group markers
+       * into screen-space grid cells.
        */
-      for (const group of this._buildClusters(
-        markers,
-        zoom
-      )) {
+      const clusters =
+        this._buildClusters(
+          markers,
+          zoom
+        );
+
+      for (const group of clusters) {
         if (group.length === 1) {
-          this._map.addLayer(group[0]);
-          this._rendered.add(group[0]);
+          const marker = group[0];
+
+          this._map.addLayer(marker);
+          this._rendered.add(marker);
         } else {
           const cluster =
             this._createCluster(group);
@@ -251,6 +268,14 @@
     }
 
     _buildClusters(markers, zoom) {
+      /*
+       * maxClusterRadius is the approximate
+       * radius in screen pixels.
+       *
+       * Using twice the radius gives us square
+       * grid cells approximately matching the
+       * requested clustering distance.
+       */
       const size = Math.max(
         1,
         this.options.maxClusterRadius * 2
@@ -268,11 +293,15 @@
           `${Math.floor(point.x / size)}:` +
           `${Math.floor(point.y / size)}`;
 
-        if (!buckets.has(key)) {
-          buckets.set(key, []);
+        let bucket =
+          buckets.get(key);
+
+        if (!bucket) {
+          bucket = [];
+          buckets.set(key, bucket);
         }
 
-        buckets.get(key).push(marker);
+        bucket.push(marker);
       }
 
       return Array.from(
@@ -309,6 +338,10 @@
       );
 
       cluster.on("click", () => {
+        if (!this._map) {
+          return;
+        }
+
         const bounds =
           new L.LatLngBounds(
             markers.map((marker) =>
@@ -316,16 +349,18 @@
             )
           );
 
-        if (bounds.isValid()) {
-          this._map.fitBounds(
-            bounds,
-            {
-              padding: [30, 30],
-              maxZoom:
-                this._map.getZoom() + 2,
-            }
-          );
+        if (!bounds.isValid()) {
+          return;
         }
+
+        this._map.fitBounds(
+          bounds,
+          {
+            padding: [30, 30],
+            maxZoom:
+              this._map.getZoom() + 2,
+          }
+        );
       });
 
       return cluster;
@@ -351,9 +386,8 @@
   }
 
   /*
-   * Expose both the class and the traditional
-   * factory name so the experiment is easy to
-   * adapt later.
+   * Expose the class using the Leaflet-style
+   * names used by all-leaflet.js.
    */
   L.MarkerClusterGroup =
     MarkerClusterGroup;
