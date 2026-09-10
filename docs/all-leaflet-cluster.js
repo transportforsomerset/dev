@@ -51,6 +51,8 @@
       this._refreshScheduled = false;
       this._loading = false;
       this._boundRefresh = null;
+      this._renderTimer = null;
+      this._renderGeneration = 0;
     }
 
     onAdd(map) {
@@ -71,12 +73,8 @@
     }
 
     onRemove(map) {
-      if (this._boundRefresh) {
-        map.off(
-          "zoomend moveend resize",
-          this._boundRefresh
-        );
-      }
+      this._cancelPendingRender();
+      if (this._boundRefresh) { map.off("zoomend moveend resize", this._boundRefresh); }
 
       this._clearRendered();
 
@@ -208,20 +206,19 @@
       this._rendered.clear();
     }
 
-    _refresh() {
-      if (
-        !this._map ||
-        this._loading
-      ) {
-        return;
+    _cancelPendingRender() {
+      if (this._renderTimer !== null) {
+        clearTimeout(this._renderTimer);
+        this._renderTimer = null;
       }
+      this._renderGeneration++;
+    }
 
+    _refresh() {
+      if (!this._map || this._loading) return;
+      this._cancelPendingRender();
       this._clearRendered();
-
-      const markers = Array.from(
-        this._markers
-      );
-
+      const markers = Array.from(this._markers);
       const zoom = this._map.getZoom();
 
       /*
@@ -234,12 +231,45 @@ if (
 ) {
   const bounds = this._map.getBounds().pad(0.25);
 
-  for (const marker of markers) {
-    if (bounds.contains(marker.getLatLng())) {
+  const visibleMarkers = markers.filter((marker) =>
+    bounds.contains(marker.getLatLng())
+  );
+
+  const generation = this._renderGeneration;
+  let index = 0;
+
+  const addChunk = () => {
+    if (
+      !this._map ||
+      generation !== this._renderGeneration
+    ) {
+      return;
+    }
+
+    const start = performance.now();
+
+    while (
+      index < visibleMarkers.length &&
+      performance.now() - start <
+        this.options.chunkInterval
+    ) {
+      const marker = visibleMarkers[index++];
+
       this._map.addLayer(marker);
       this._rendered.add(marker);
     }
-  }
+
+    if (index < visibleMarkers.length) {
+      this._renderTimer = setTimeout(
+        addChunk,
+        this.options.chunkDelay
+      );
+    } else {
+      this._renderTimer = null;
+    }
+  };
+
+  addChunk();
 
   return;
 }
