@@ -1,5 +1,7 @@
 const map = new L.Map("map");
-const useClusterer = false; // Use the experimental clusterer - true or false.
+const useClusterer = true; // Use the experimental clusterer - true (on) or false (off).
+                           // WARNING: turning this off will likely result in a browser
+                           //          crash when trying to render 1000's of bus markers.
 
 const fullscreenControl = new L.Control({ position: "topright" });
 
