@@ -23,7 +23,6 @@
  *   - all MarkerClusterGroup APIs
  */
 
-(() => {
   class MarkerClusterGroup extends L.FeatureGroup {
     constructor(options = {}) {
       super();
@@ -386,13 +385,4 @@ const icon = new L.DivIcon({
     }
   }
 
-  /*
-   * Expose the class using the Leaflet-style
-   * names used by all-leaflet.js.
-   */
-  L.MarkerClusterGroup =
-    MarkerClusterGroup;
-
-  L.markerClusterGroup = (options) =>
-    new MarkerClusterGroup(options);
-})();
+ export { MarkerClusterGroup };
