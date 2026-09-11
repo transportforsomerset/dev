@@ -138,8 +138,8 @@ async function loadData() {
 function readVehicles(database) {
   return new Promise((resolve, reject) => {
     const request = database
-      .transaction(STORE_NAME, "readonly")
-      .objectStore(STORE_NAME)
+      .transaction(allDatabase.stores.vehicles, "readonly")
+      .objectStore(allDatabase.stores.vehicles)
       .getAll();
 
     request.onsuccess = () => {
