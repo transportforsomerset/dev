@@ -53,6 +53,9 @@
       this._boundRefresh = null;
       this._renderTimer = null;
       this._renderGeneration = 0;
+
+     this._spatialIndex = new Map();
+     this._spatialCellSize = 0.1;
     }
 
     onAdd(map) {
@@ -108,6 +111,7 @@
           }
         }
 
+        this._buildSpatialIndex();
         this._refresh();
 
         return this;
@@ -139,6 +143,7 @@
           );
         } else {
           this._loading = false;
+          this._buildSpatialIndex();
           this._refresh();
         }
       };
@@ -177,6 +182,60 @@
     getLayers() {
       return Array.from(this._markers);
     }
+
+
+    _buildSpatialIndex() {
+  this._spatialIndex.clear();
+
+  const size = this._spatialCellSize;
+
+  for (const marker of this._markers) {
+    const position = marker.getLatLng();
+
+    const x = Math.floor(position.lng / size);
+    const y = Math.floor(position.lat / size);
+
+    const key = `${x}:${y}`;
+
+    let cell = this._spatialIndex.get(key);
+
+    if (!cell) {
+      cell = [];
+      this._spatialIndex.set(key, cell);
+    }
+
+    cell.push(marker);
+  }
+}
+
+    _getMarkersInBounds(bounds) {
+  const size = this._spatialCellSize;
+
+  const minX = Math.floor(bounds.getWest() / size);
+  const maxX = Math.floor(bounds.getEast() / size);
+  const minY = Math.floor(bounds.getSouth() / size);
+  const maxY = Math.floor(bounds.getNorth() / size);
+
+  const markers = [];
+
+  for (let x = minX; x <= maxX; x++) {
+    for (let y = minY; y <= maxY; y++) {
+      const cell = this._spatialIndex.get(`${x}:${y}`);
+
+      if (!cell) {
+        continue;
+      }
+
+      for (const marker of cell) {
+        if (bounds.contains(marker.getLatLng())) {
+          markers.push(marker);
+        }
+      }
+    }
+  }
+
+  return markers;
+}
 
     _scheduleRefresh() {
       if (
@@ -231,9 +290,7 @@ if (
 ) {
   const bounds = this._map.getBounds().pad(0.25);
 
-  const visibleMarkers = markers.filter((marker) =>
-    bounds.contains(marker.getLatLng())
-  );
+  const visibleMarkers = this._getMarkersInBounds(bounds);
 
   const generation = this._renderGeneration;
   let index = 0;
