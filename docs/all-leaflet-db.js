@@ -1,6 +1,6 @@
 const allDatabase = {
   name: "transport-for-somerset",
-  version: 1,
+  version: 2,
   stores: {
     vehicles: "vehicles",
     routes: "routes",
@@ -8,7 +8,8 @@ const allDatabase = {
   }
 };
 
-const DATA_URL = "https://busopendata.transportforsomerset.co.uk/all-v4.json";
+const DATA_URL =
+  "https://busopendata.transportforsomerset.co.uk/all-v4.json";
 
 const statusElement = document.getElementById("status");
 const countElement = document.getElementById("count");
@@ -27,13 +28,24 @@ function openDatabase() {
 
     request.onupgradeneeded = () => {
       const database = request.result;
+      const storeName = allDatabase.stores.vehicles;
 
-      if (!database.objectStoreNames.contains(allDatabase.stores.vehicles)) {
-        database.createObjectStore(
-          allDatabase.stores.vehicles,
-          { keyPath: "vehicle_id" }
-        );
+      /*
+       * Recreate the vehicles store for version 2.
+       *
+       * The old version used vehicle_id as a keyPath,
+       * which meant vehicle_id was stored twice:
+       *
+       *   IndexedDB key
+       *   vehicle.vehicle_id
+       *
+       * The new version uses an out-of-line key instead.
+       */
+      if (database.objectStoreNames.contains(storeName)) {
+        database.deleteObjectStore(storeName);
       }
+
+      database.createObjectStore(storeName);
     };
 
     request.onsuccess = () => {
@@ -58,6 +70,8 @@ async function loadData() {
   });
 
   if (!response.ok) {
+    database.close();
+
     throw new Error(
       `Data HTTP ${response.status}`
     );
@@ -67,12 +81,14 @@ async function loadData() {
 
   setStatus("Populating database...");
 
-  const store = database
-    .transaction(
-      allDatabase.stores.vehicles,
-      "readwrite"
-    )
-    .objectStore(allDatabase.stores.vehicles);
+  const transaction = database.transaction(
+    allDatabase.stores.vehicles,
+    "readwrite"
+  );
+
+  const store = transaction.objectStore(
+    allDatabase.stores.vehicles
+  );
 
   let count = 0;
 
@@ -84,12 +100,13 @@ async function loadData() {
       operatorCode;
 
     for (const values of vehicles) {
+      const vehicleId = values[0];
+
       const date = data.dates[values[9]];
       const direction = data.directions[values[2]];
       const destination = data.destinations[values[4]];
 
       const vehicle = {
-        vehicle_id: values[0],
         operator: operatorName,
         operator_code: operatorCode,
         route: values[1],
@@ -105,15 +122,32 @@ async function loadData() {
         journey_id: values[11],
       };
 
-      store.put(vehicle);
+      /*
+       * vehicle_id is now the IndexedDB key,
+       * rather than part of the stored value.
+       */
+      store.put(vehicle, vehicleId);
+
       count++;
     }
   }
 
   await new Promise((resolve, reject) => {
-    store.transaction.oncomplete = resolve;
-    store.transaction.onerror = () =>
-      reject(store.transaction.error);
+    transaction.oncomplete = resolve;
+
+    transaction.onerror = () => {
+      reject(
+        transaction.error ??
+        new Error("Database transaction failed")
+      );
+    };
+
+    transaction.onabort = () => {
+      reject(
+        transaction.error ??
+        new Error("Database transaction aborted")
+      );
+    };
   });
 
   setStatus("Reading database...");
@@ -130,20 +164,47 @@ async function loadData() {
   sizeElement.textContent =
     `Approximate data size: ${formatBytes(size)}`;
 
-  setStatus("Database created and populated successfully.");
+  setStatus(
+    "Database created and populated successfully."
+  );
 
   database.close();
 }
 
 function readVehicles(database) {
   return new Promise((resolve, reject) => {
-    const request = database
-      .transaction(allDatabase.stores.vehicles, "readonly")
-      .objectStore(allDatabase.stores.vehicles)
-      .getAll();
+    const transaction = database.transaction(
+      allDatabase.stores.vehicles,
+      "readonly"
+    );
+
+    const store = transaction.objectStore(
+      allDatabase.stores.vehicles
+    );
+
+    const request = store.openCursor();
+
+    const vehicles = [];
 
     request.onsuccess = () => {
-      resolve(request.result);
+      const cursor = request.result;
+
+      if (!cursor) {
+        resolve(vehicles);
+        return;
+      }
+
+      /*
+       * vehicle_id is stored as the IndexedDB key,
+       * so put it back into the application object
+       * when reading the record.
+       */
+      vehicles.push({
+        vehicle_id: cursor.key,
+        ...cursor.value,
+      });
+
+      cursor.continue();
     };
 
     request.onerror = () => {
@@ -166,5 +227,8 @@ function formatBytes(bytes) {
 
 loadData().catch((error) => {
   console.error(error);
-  setStatus(`Error: ${error.message}`);
+
+  setStatus(
+    `Error: ${error.message}`
+  );
 });
