@@ -28,7 +28,7 @@ function openDatabase() {
     request.onupgradeneeded = () => {
       const database = request.result;
 
-      if (!database.objectStoreNames.contains(STORE_NAME)) {
+      if (!database.objectStoreNames.contains(allDatabase.stores.vehicles)) {
         database.createObjectStore(
           allDatabase.stores.vehicles,
           { keyPath: "vehicle_id" }
